@@ -72,6 +72,7 @@ class SpotifyService:
         }
         url = f"{settings.spotify_auth_url}?{urlencode(params)}"
         logger.debug("built_spotify_auth_url", url=url)
+        print("SPOTIFY_REDIRECT_URI =", settings.spotify_redirect_uri)
         return url, state
 
     # ── Step 2: Exchange code for tokens ─────────────────────────────────────
@@ -151,6 +152,9 @@ class SpotifyService:
         """
         # 4a. Exchange code
         token_data = await self.exchange_code_for_tokens(code)
+        print("\nACCESS TOKEN:")
+        print(token_data["access_token"])
+        print()
 
         raw_access_token: str = token_data["access_token"]
         raw_refresh_token: str = token_data["refresh_token"]
