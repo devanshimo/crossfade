@@ -32,7 +32,9 @@ class UserRead(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    display_name: str | None = None
     created_at: datetime
+    updated_at: datetime | None = None
 
 
 # ── Spotify Account ───────────────────────────────────────────────────────────
@@ -75,3 +77,7 @@ class SpotifyUserProfile(BaseModel):
     id: str                     # Spotify user ID
     email: str
     display_name: str | None = None
+
+class CurrentUserResponse(BaseModel):
+    user: UserRead
+    spotify_account: SpotifyAccountRead
