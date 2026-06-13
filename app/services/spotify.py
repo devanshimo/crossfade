@@ -134,6 +134,7 @@ class SpotifyService:
             )
 
         data = response.json()
+        print("SPOTIFY DATA:", data)
         return SpotifyUserProfile(
             id=data["id"],
             email=data.get("email", ""),
@@ -162,7 +163,7 @@ class SpotifyService:
         logger.info("spotify_profile_fetched", spotify_user_id=profile.id)
 
         # 4c. Upsert Crossfade user
-        user, created = await self._user_repo.get_or_create(email=profile.email)
+        user, created = await self._user_repo.get_or_create(email=profile.email,display_name=profile.display_name,)
         if created:
             logger.info("user_created", user_id=str(user.id))
         else:

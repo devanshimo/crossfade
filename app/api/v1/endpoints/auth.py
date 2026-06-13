@@ -27,7 +27,7 @@ from app.core.logging import get_logger
 from app.db.session import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
-from app.schemas.user import AuthenticatedUser
+from app.schemas.user import AuthenticatedUser,CurrentUserResponse
 from app.services.spotify import SpotifyAuthError, SpotifyService
 
 logger = get_logger(__name__)
@@ -109,17 +109,18 @@ async def spotify_callback(
 
 @router.get(
     "/me",
-    response_model=AuthenticatedUser,
+    response_model=CurrentUserResponse,
     summary="Get current authenticated user",
     description="Returns the currently authenticated Crossfade user and their linked Spotify account.",
 )
 async def spotify_me(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> AuthenticatedUser:
+) -> CurrentUserResponse:
     service = SpotifyService(db)
     try:
-        return await service.get_authenticated_user(current_user)
+        auth_user= await service.get_authenticated_user(current_user)
+        return CurrentUserResponse( user=auth_user.user, spotify_account=auth_user.spotify_account, )
     except SpotifyAuthError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
