@@ -113,6 +113,7 @@ async def spotify_callback(
     summary="Get current authenticated user",
     description="Returns the currently authenticated Crossfade user and their linked Spotify account.",
 )
+
 async def spotify_me(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

@@ -15,10 +15,11 @@ How it connects:
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import auth
+from app.api.v1.endpoints import playlist
+
+
 
 api_router = APIRouter(prefix="/v1")
 
 api_router.include_router(auth.router)
-
-# Day 2+: add playlists, sync, apple-music, etc.
-# api_router.include_router(playlists.router)
+api_router.include_router(playlist.router)
