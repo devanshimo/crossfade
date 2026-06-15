@@ -134,7 +134,6 @@ class SpotifyService:
             )
 
         data = response.json()
-        print("SPOTIFY DATA:", data)
         return SpotifyUserProfile(
             id=data["id"],
             email=data.get("email", ""),
@@ -152,6 +151,7 @@ class SpotifyService:
         """
         # 4a. Exchange code
         token_data = await self.exchange_code_for_tokens(code)
+        
 
         raw_access_token: str = token_data["access_token"]
         raw_refresh_token: str = token_data["refresh_token"]
@@ -196,6 +196,126 @@ class SpotifyService:
 
         internal_jwt = create_internal_token(subject=str(user.id))
         return self._build_auth_response(user, account, internal_jwt)
+     # ── Helper: read current user's Spotify playlists ──────────────────────────
+    async def get_current_user_playlists(
+        self,
+        user: User,
+        limit: int = 50,
+    ) -> list[dict]:
+        spotify_account = await self._spotify_repo.get_by_user_id(user.id)
+        if spotify_account is None:
+            raise SpotifyAuthError("No linked Spotify account found")
+
+        access_token = decrypt_token(spotify_account.access_token)
+
+        playlists: list[dict] = []
+        url = f"{settings.spotify_api_base}/me/playlists"
+        params = {"limit": limit, "offset": 0}
+
+        async with httpx.AsyncClient() as client:
+            while url:
+                response = await client.get(
+                    url,
+                    headers={"Authorization": f"Bearer {access_token}"},
+                    params=params if "?" not in url else None,
+                )
+
+                if response.status_code != 200:
+                    raise SpotifyAuthError(
+                        f"Failed to fetch playlists: {response.status_code} {response.text}"
+                    )
+
+                data = response.json()
+                playlists.extend(data.get("items", []))
+                url = data.get("next")
+                params = None
+
+        return playlists
+
+
+    async def get_playlist(
+        self,
+        user: User,
+        spotify_playlist_id: str,
+    ) -> dict:
+        spotify_account = await self._spotify_repo.get_by_user_id(user.id)
+        if spotify_account is None:
+            raise SpotifyAuthError("No linked Spotify account found")
+
+        access_token = decrypt_token(spotify_account.access_token)
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{settings.spotify_api_base}/playlists/{spotify_playlist_id}",
+                headers={"Authorization": f"Bearer {access_token}"},
+                
+    
+
+                #params={"fields": "id,name,description,snapshot_id"},
+            )
+            
+
+        if response.status_code != 200:
+            raise SpotifyAuthError(
+                f"Failed to fetch playlist: {response.status_code} {response.text}"
+            )
+        data = response.json()
+
+
+        return data
+        
+
+
+    async def get_playlist_tracks(
+        self,
+        user: User,
+        spotify_playlist_id: str,
+        limit: int = 100,
+    ) -> list[dict]:
+        spotify_account = await self._spotify_repo.get_by_user_id(user.id)
+        if spotify_account is None:
+            raise SpotifyAuthError("No linked Spotify account found")
+        
+
+        access_token = decrypt_token(spotify_account.access_token)
+
+        items: list[dict] = []
+        
+        url =f"{settings.spotify_api_base}/playlists/{spotify_playlist_id}/tracks"
+        params = {
+            "limit": limit,
+            "offset": 0,
+            #"fields": (
+                #"items(added_at,added_by.id,"
+                #"track(id,name,duration_ms,artists(name),album(name))),next"
+            #),
+        }
+
+        async with httpx.AsyncClient() as client:
+            while url:
+                response = await client.get(
+                    url,
+                    headers={"Authorization": f"Bearer {access_token}"},
+                    params=params if "?" not in url else None,
+                )
+
+                me_response = await client.get(
+                f"{settings.spotify_api_base}/me",
+                headers={"Authorization": f"Bearer {access_token}"}
+)
+
+                if response.status_code != 200:
+                    raise SpotifyAuthError(
+                        f"Failed to fetch playlist tracks: {response.status_code} {response.text}"
+                    )
+
+                data = response.json()
+                items.extend(data.get("items", []))
+                url = data.get("next")
+                params = None
+
+        return items
+
 
     # ── Private helpers ───────────────────────────────────────────────────────
 
