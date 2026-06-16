@@ -39,6 +39,18 @@ class Track(Base):
         nullable=True,
     )
 
+    isrc = Column(
+        String,
+        nullable=True,
+        index=True,
+    )
+
+    apple_music_id = Column(
+        String,
+        nullable=True,
+        index=True,
+    )
+
     created_at = Column(
         DateTime,
         default=datetime.utcnow,

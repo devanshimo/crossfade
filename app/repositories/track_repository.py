@@ -67,6 +67,7 @@ class TrackRepository:
                 artist_names=data["artist_names"],
                 album_name=data["album_name"],
                 duration_ms=data["duration_ms"],
+                isrc=data.get("isrc"),
 
             )
                 self.session.add(track)
@@ -81,3 +82,8 @@ class TrackRepository:
 
         await self.session.flush()
         return ordered_tracks
+    async def get_unmatched_tracks(self) -> list[Track]:
+        result = await self.session.execute(
+            select(Track).where(Track.apple_music_id.is_(None))
+        )
+        return list(result.scalars().all())

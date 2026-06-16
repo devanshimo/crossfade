@@ -16,6 +16,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import auth
 from app.api.v1.endpoints import playlist
+from app.api.v1.endpoints import apple_music
 
 
 
@@ -23,3 +24,4 @@ api_router = APIRouter(prefix="/v1")
 
 api_router.include_router(auth.router)
 api_router.include_router(playlist.router)
+api_router.include_router(apple_music.router)
