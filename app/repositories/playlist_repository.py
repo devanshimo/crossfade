@@ -1,3 +1,4 @@
+from unittest import result
 import uuid
 from typing import Optional, Sequence
 
@@ -30,6 +31,17 @@ class PlaylistRepository:
             select(Playlist).where(Playlist.user_id == user_id)
         )
         return result.scalars().all()
+    async def get_by_id(
+    self,
+    playlist_id: uuid.UUID,
+) -> Optional[Playlist]:
+        result = await self.session.execute(
+        select(Playlist).where(
+            Playlist.id == playlist_id
+        )
+    )
+
+        return result.scalar_one_or_none()
 
     async def get_with_tracks(
         self, playlist_id: uuid.UUID
@@ -112,21 +124,4 @@ class PlaylistRepository:
 
         return result.all()
 
-    async def list_for_user_with_counts(
-        self,
-        user_id: uuid.UUID,
-    ) -> Sequence[tuple[Playlist, int]]:
-        result = await self.session.execute(
-            select(
-                Playlist,
-                func.count(PlaylistTrack.id).label("track_count"),
-            )
-            .outerjoin(
-                PlaylistTrack,
-                PlaylistTrack.playlist_id == Playlist.id,
-            )
-            .where(Playlist.user_id == user_id)
-            .group_by(Playlist.id)
-        )
-
-        return result.all()
+    
